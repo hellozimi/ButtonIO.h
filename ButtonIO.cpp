@@ -24,6 +24,7 @@ Action init_action(type_t type) {
 ButtonIO::ButtonIO(int pin) {
     pinMode(pin, INPUT);
     _pin = pin;
+    _maxPressedDuration = -1;
 }
 
 void ButtonIO::pressed(callback_t callback) {
@@ -41,6 +42,8 @@ void ButtonIO::hold(callback_t callback, int duration) {
     action.type = TypeHold;
     action.pin = _pin;
     action.duration = duration;
+
+    _maxPressedDuration = duration;
 
     _actions[1] = action;
 }
@@ -84,11 +87,17 @@ void ButtonIO::update() {
 }
 
 void ButtonIO::handle_pressed(Action &action, int value) {
-    
     if ( action.startTime > 0 ) {
         if (action.lastState == HIGH && value == LOW) {
-            action.startTime = -1;
+
+            long time = millis() - action.startTime;
+
+            if ( _maxPressedDuration > 0 && time > _maxPressedDuration ) {
+                action.startTime = -1;
+                return;
+            }
             action.callback(action.pin);
+            action.startTime = -1;
         }
     }
     else {

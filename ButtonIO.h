@@ -116,6 +116,9 @@ private:
     // An array of the three action types we're using at the moment
     // This is a subject to change.
     Action _actions[3];
+
+    // To suppress if hold is set
+    int _maxPressedDuration;
 };
 
 #endif
